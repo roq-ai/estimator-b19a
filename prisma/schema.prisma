@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model estimate {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  time_plan        String        @db.VarChar(255)
+  staff_management String        @db.VarChar(255)
+  tasks            String        @db.VarChar(255)
+  expenses         String        @db.VarChar(255)
+  approval_summary String        @db.VarChar(255)
+  organization_id  String?       @db.Uuid
+  created_at       DateTime      @default(now()) @db.Timestamp(6)
+  updated_at       DateTime      @default(now()) @db.Timestamp(6)
+  organization     organization? @relation(fields: [organization_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  expense          expense[]
+  task             task[]
+}
+
+model expense {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description String    @db.VarChar(255)
+  amount      Int
+  estimate_id String?   @db.Uuid
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  updated_at  DateTime  @default(now()) @db.Timestamp(6)
+  estimate    estimate? @relation(fields: [estimate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model organization {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description String?    @db.VarChar(255)
+  image       String?    @db.VarChar(255)
+  name        String     @db.VarChar(255)
+  created_at  DateTime   @default(now()) @db.Timestamp(6)
+  updated_at  DateTime   @default(now()) @db.Timestamp(6)
+  user_id     String     @db.Uuid
+  tenant_id   String     @db.VarChar(255)
+  estimate    estimate[]
+  user        user       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model task {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String    @db.VarChar(255)
+  status      String    @db.VarChar(255)
+  estimate_id String?   @db.Uuid
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  updated_at  DateTime  @default(now()) @db.Timestamp(6)
+  estimate    estimate? @relation(fields: [estimate_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String         @unique @db.VarChar(255)
+  firstName    String?        @db.VarChar(255)
+  lastName     String?        @db.VarChar(255)
+  roq_user_id  String         @db.VarChar(255)
+  tenant_id    String         @db.VarChar(255)
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  updated_at   DateTime       @default(now()) @db.Timestamp(6)
+  organization organization[]
+}
